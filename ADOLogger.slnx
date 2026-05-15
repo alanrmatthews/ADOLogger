@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ADOLogger/ADOLogger.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ADOLogger.Tests/ADOLogger.Tests.csproj" />
+  </Folder>
+</Solution>
