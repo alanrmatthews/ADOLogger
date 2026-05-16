@@ -6,6 +6,23 @@
     <Nullable>enable</Nullable>
     <PackageId>ADOLogger</PackageId>
     <RootNamespace>ADOLogger</RootNamespace>
+    <Version>1.0.0</Version>
+    <Authors>Alan Matthews</Authors>
+    <Description>Azure DevOps logging command helper library.</Description>
+    <PackageTags>azure-devops;ado;logging;pipeline</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/alanrmatthews/ADOLogger</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/alanrmatthews/ADOLogger.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>
