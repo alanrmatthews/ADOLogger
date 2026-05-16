@@ -25,6 +25,18 @@ public class ADOLoggerTests
     }
 
     [Fact]
+    public void Info_WritesFormattingCommand()
+    {
+        var writer = new StringWriter();
+        var logger = new ADOLogger(writer);
+
+        var command = logger.Info("General update");
+
+        Assert.Equal("General update", command);
+        Assert.Equal(command + Environment.NewLine, writer.ToString());
+    }
+
+    [Fact]
     public void EndGroup_WritesEndGroupMarker()
     {
         var writer = new StringWriter();

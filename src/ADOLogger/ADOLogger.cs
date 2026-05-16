@@ -57,7 +57,14 @@ public class ADOLogger
         this.output = output ?? Console.Out;
     }
 
+    // Formatting commands
     public string Group(string message) => WriteFormattingCommand("group", message);
+
+    public string Info(string message)
+    {
+        output.WriteLine(message);
+        return message;
+    }
 
     public string Warning(string message) => WriteFormattingCommand("warning", message);
 
@@ -76,6 +83,7 @@ public class ADOLogger
         return command;
     }
 
+    // Task commands
     public string LogIssue(
         string type,
         string message,
@@ -218,6 +226,7 @@ public class ADOLogger
 
     public string PrependPath(string path) => WriteServiceCommand("task", "prependpath", path);
 
+    // Artifact commands
     public string AssociateArtifact(string artifactName, string artifactLocation, string type)
     {
         EnsureRequired(artifactName, nameof(artifactName));
@@ -256,6 +265,7 @@ public class ADOLogger
             ("artifactname", artifactName));
     }
 
+    // Build commands
     public string UploadLog(string filePath) => WriteServiceCommand("build", "uploadlog", filePath);
 
     public string UpdateBuildNumber(string buildNumber) => WriteServiceCommand("build", "updatebuildnumber", buildNumber);
@@ -272,8 +282,10 @@ public class ADOLogger
         return WriteServiceCommand("build", "addbuildtag", buildTag);
     }
 
+    // Release commands
     public string UpdateReleaseName(string releaseName) => WriteServiceCommand("release", "updatereleasename", releaseName);
 
+    // Internal command builders
     private string WriteFormattingCommand(string command, string message)
     {
         EnsureRequired(command, nameof(command));
@@ -319,6 +331,7 @@ public class ADOLogger
         return command;
     }
 
+    // Internal validation and escaping helpers
     private static string EscapePropertyValue(string value)
     {
         return EscapePercent(value)
