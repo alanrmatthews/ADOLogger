@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>ADOLogger</PackageId>
     <RootNamespace>ADOLogger</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Alan Matthews</Authors>
     <Description>Azure DevOps logging command helper library.</Description>
     <PackageTags>azure-devops;ado;logging;pipeline</PackageTags>
