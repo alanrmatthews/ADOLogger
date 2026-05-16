@@ -1,0 +1,52 @@
+name: Publish NuGet
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Extract version from tag
+        id: version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore
+        run: dotnet restore ADOLogger.slnx
+
+      - name: Build
+        run: dotnet build ADOLogger.slnx --configuration Release --no-restore
+
+      - name: Pack
+        run: dotnet pack src/ADOLogger/ADOLogger.csproj --configuration Release --no-build -p:Version=${{ steps.version.outputs.version }}
+
+      # Get a short-lived NuGet API key
+      - name: NuGet login (OIDC → temp API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push package
+        run: dotnet nuget push "src/ADOLogger/bin/Release/*.nupkg" --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+
+      - name: Push symbols
+        run: dotnet nuget push "src/ADOLogger/bin/Release/*.snupkg" --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
