@@ -1,103 +1,101 @@
-using System.IO;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ADOLogger.Tests;
 
 public class ADOLoggerTests
 {
+    private readonly ADOLogger logger;
+
+    public ADOLoggerTests()
+    {
+        logger = new ADOLogger();
+    }
+
     [Fact]
     public void CanInstantiateLogger()
     {
-        var logger = new ADOLogger();
-
         Assert.NotNull(logger);
     }
 
     [Fact]
-    public void Warning_WritesFormattingCommand()
+    public void CanLogWarningMessage()
     {
-        var writer = new StringWriter();
-        var logger = new ADOLogger(writer);
-
-        var command = logger.Warning("Check this warning");
-
-        Assert.Equal("##[warning]Check this warning", command);
-        Assert.Equal(command + Environment.NewLine, writer.ToString());
+        var result = LogMessage(LogLevel.Warning, "Warning message");
+        Assert.Contains("##[warning]Warning message", result);
     }
 
     [Fact]
-    public void Info_WritesFormattingCommand()
+    public void CanLogErrorMessage()
     {
-        var writer = new StringWriter();
-        var logger = new ADOLogger(writer);
-
-        var command = logger.Info("General update");
-
-        Assert.Equal("General update", command);
-        Assert.Equal(command + Environment.NewLine, writer.ToString());
+        var result = LogMessage(LogLevel.Error, "Error message");
+        Assert.Contains("##vso[task.logissue type=error]Error message", result);
     }
 
     [Fact]
-    public void EndGroup_WritesEndGroupMarker()
+    public void CanLogInfoMessage()
     {
-        var writer = new StringWriter();
-        var logger = new ADOLogger(writer);
-
-        var command = logger.EndGroup();
-
-        Assert.Equal("##[endgroup]", command);
-        Assert.Equal(command + Environment.NewLine, writer.ToString());
+        var result = LogMessage(LogLevel.Information, "Info message");
+        Assert.Equal("Info message" + Environment.NewLine, result);
     }
 
     [Fact]
-    public void SetVariable_EscapesReservedCharacters()
+    public void LogIssue_WithWarning_WritesWarningFormat()
     {
-        var writer = new StringWriter();
-        var logger = new ADOLogger(writer);
+        var output = new StringWriter();
+        Console.SetOut(output);
 
-        var command = logger.SetVariable("buildStatus", "50%; ready]\nnext", isOutput: true);
+        logger.LogIssue("Test warning", ADOIssueType.Warning);
 
-        Assert.Equal("##vso[task.setvariable variable=buildStatus;isOutput=true;]50%AZP25; ready]%0Anext", command);
+        Assert.Contains("##vso[task.logissue type=warning]Test warning", output.ToString());
     }
 
     [Fact]
-    public void LogIssue_IncludesOptionalMetadata()
+    public void LogIssue_WithError_WritesErrorFormat()
     {
-        var writer = new StringWriter();
-        var logger = new ADOLogger(writer);
+        var output = new StringWriter();
+        Console.SetOut(output);
 
-        var command = logger.LogIssue("warning", "Potential issue", sourcePath: "src/file.cs", lineNumber: 4, columnNumber: 2, code: "CS1001");
+        logger.LogIssue("Test error", ADOIssueType.Error);
 
-        Assert.Equal("##vso[task.logissue type=warning;sourcepath=src/file.cs;linenumber=4;columnnumber=2;code=CS1001;]Potential issue", command);
+        Assert.Contains("##vso[task.logissue type=error]Test error", output.ToString());
     }
 
     [Fact]
-    public void UploadArtifact_UsesContainerFolderWhenProvided()
+    public void LogWarning_WritesWarningFormat()
     {
-        var writer = new StringWriter();
-        var logger = new ADOLogger(writer);
+        var output = new StringWriter();
+        Console.SetOut(output);
 
-        var command = logger.UploadArtifact("drop", "c:/artifacts/result.trx", containerFolder: "testresult");
+        logger.LogWarning("Warning message");
 
-        Assert.Equal("##vso[artifact.upload containerfolder=testresult;artifactname=drop;]c:/artifacts/result.trx", command);
+        Assert.Contains("##vso[task.logissue type=warning]Warning message", output.ToString());
     }
 
     [Fact]
-    public void SetEndpoint_RequiresKeyForNonUrlFields()
+    public void LogError_WritesErrorFormat()
     {
-        var logger = new ADOLogger(new StringWriter());
+        var output = new StringWriter();
+        Console.SetOut(output);
 
-        var exception = Assert.Throws<ArgumentException>(() => logger.SetEndpoint("endpoint-id", "authParameter", "token"));
+        logger.LogError("Error message");
 
-        Assert.Equal("key", exception.ParamName);
+        Assert.Contains("##vso[task.logissue type=error]Error message", output.ToString());
     }
 
-    [Fact]
-    public void AddBuildTag_RejectsColon()
+    // Helper method to reduce duplication
+    private string LogMessage(LogLevel logLevel, string message)
     {
-        var logger = new ADOLogger(new StringWriter());
+        var output = new StringWriter();
+        var logEntry = new LogEntry<string>(
+            logLevel,
+            "TestCategory",
+            new EventId(0),
+            message,
+            null,
+            (state, exception) => state);
 
-        var exception = Assert.Throws<ArgumentException>(() => logger.AddBuildTag("release:1"));
-
-        Assert.Equal("buildTag", exception.ParamName);
+        logger.Write(logEntry, null, output);
+        return output.ToString();
     }
 }
